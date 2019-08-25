@@ -2,7 +2,6 @@ package com.gnarly.game;
 
 import com.gnarly.engine.display.Camera;
 import com.gnarly.engine.model.ColRect;
-import com.gnarly.engine.model.Rect;
 import com.gnarly.engine.model.Vao;
 import com.gnarly.engine.shaders.Shader;
 import com.gnarly.engine.shaders.Shader2t;
@@ -34,18 +33,18 @@ public class BulletList {
 
 		public Vector2f boundingPosition;
 		public Vector2f bounds;
+
+		public int damage;
 	}
 
 	public static final Vector2f[] DIMENSIONS = new Vector2f[] {
+		new Vector2f(4, -8),
 		new Vector2f(4, -8)
 	};
 
-	public static final float[] SPEEDS = new float[] {
-		200
-	};
-
 	public static final int
-		TYPE_PLAYER = 0x00;
+		TYPE_PLAYER = 0x00,
+		TYPE_SMOL   = 0x01;
 
 	private Camera camera;
 
@@ -56,12 +55,18 @@ public class BulletList {
 		bullets = new ArrayList<>();
 
 		if (sprites == null) {
-			sprites = new TextureSet[1];
+			sprites = new TextureSet[2];
 			sprites[0] = new TextureSet(new String[] {
 				"res/img/bullets/bullet-0/bullet-0.png",
 				"res/img/bullets/bullet-0/bullet-1.png",
 				"res/img/bullets/bullet-0/bullet-2.png",
-				"res/img/bullets/bullet-0/bullet-3.png",
+				"res/img/bullets/bullet-0/bullet-3.png"
+			});
+			sprites[1] = new TextureSet(new String[] {
+				"res/img/bullets/bullet-1/bullet-0.png",
+				"res/img/bullets/bullet-1/bullet-1.png",
+				"res/img/bullets/bullet-1/bullet-2.png",
+				"res/img/bullets/bullet-1/bullet-3.png"
 			});
 			float vertices[] = {
 				1, 1, 0, // Top left
@@ -89,12 +94,35 @@ public class BulletList {
 			Bullet bullet = bullets.get(i);
 			Vector2f deltaV = bullet.velocity.mul((float) Main.dtime, new Vector2f());
 			for (int j = 0; j < enemies.size(); ++j) {
-				if (Collision.collide(enemies.get(j).getPosition(), enemies.get(j).getDimensions(), new Vector2f(), bullet)) {
-					enemies.remove(j);
-					--j;
+				if (Collision.collide(enemies.get(j).getPosition(), enemies.get(j).getDimensions(), enemies.get(j).getVelocity(), bullet)) {
+					enemies.get(j).damage(bullet.damage);
+					if (enemies.get(j).isDead()) {
+						enemies.remove(j);
+						--j;
+					}
 				}
-				System.out.println("Wat");
 			}
+			bullet.position.add(deltaV);
+			bullet.boundingPosition.add(deltaV);
+			bullet.lifetime += Main.dtime;
+
+			if (bullet.boundingPosition.x > camera.getWidth()   || bullet.boundingPosition.y > camera.getHeight()
+			 || bullet.boundingPosition.x + bullet.bounds.x < 0 || bullet.boundingPosition.y + bullet.bounds.y < 0) {
+				bullets.remove(i);
+				--i;
+			}
+		}
+	}
+
+	public void update(Player player) {
+		for (int i = 0; i < bullets.size(); ++i) {
+			Bullet bullet = bullets.get(i);
+			Vector2f deltaV = bullet.velocity.mul((float) Main.dtime, new Vector2f());
+			Collision.Bounds bounds = player.getBounds();
+			Vector2f[] segments = player.getSegments();
+			if (Collision.collide(bounds, segments, player.getVelocity(), bullet))
+				player.damage(bullet.damage);
+
 			bullet.position.add(deltaV);
 			bullet.boundingPosition.add(deltaV);
 			bullet.lifetime += Main.dtime;
@@ -117,11 +145,11 @@ public class BulletList {
 		}
 	}
 
-	public void spawnBullet(Vector2f position, float rotation, int type) {
-		spawnBullet(position, DIMENSIONS[type], rotation, SPEEDS[type], type);
+	public void spawnBullet(Vector2f position, float rotation, int type, int speed, int damage) {
+		spawnBullet(position, DIMENSIONS[type], rotation, speed, type, damage);
 	}
 
-	private void spawnBullet(Vector2f position, Vector2f dimensions, float rotation, float velocity, int sprite) {
+	private void spawnBullet(Vector2f position, Vector2f dimensions, float rotation, float velocity, int sprite, int damage) {
 		float sin = (float) -Math.sin(rotation);
 		float cos = (float)  Math.cos(rotation);
 
@@ -150,6 +178,7 @@ public class BulletList {
 
 		bullet.lifetime = 0;
 		bullet.sprite = sprite;
+		bullet.damage = damage;
 
 		Vector2f p0 = new Vector2f(bullet.position);
 		Vector2f p1 = new Vector2f(bullet.position).add(bullet.side0);
@@ -168,11 +197,11 @@ public class BulletList {
 		bullets.add(bullet);
 	}
 
-	public float getWidth(int type) {
+	public static float getWidth(int type) {
 		return DIMENSIONS[type].x;
 	}
 
-	public float getHeight(int type) {
+	public static float getHeight(int type) {
 		return DIMENSIONS[type].y;
 	}
 

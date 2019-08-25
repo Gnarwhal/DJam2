@@ -1,6 +1,7 @@
 package com.gnarly.game;
 
 import com.gnarly.engine.audio.ALManagement;
+import com.gnarly.engine.audio.Sound;
 import com.gnarly.engine.display.Camera;
 import com.gnarly.engine.display.Window;
 import com.gnarly.engine.shaders.Shader;
@@ -24,12 +25,10 @@ public class Main {
 	
 	private Panel[] panels;
 	private int panel;
-	
+
+	private Sound sound;
+
 	public void start() {
-		System.out.println(Collision.segmentCollision(
-			new Vector2f(100, 100), new Vector2f(25, 0), new Vector2f(0, 100),
-			new Vector2f(110.9f, 165.3f), new Vector2f(3.923f, -0.7804f), new Vector2f(-3.902f, -19.62f)
-		));
 		init();
 		int frames = 0;
 		long curTime, pastTime, pastSec, nspf = 1000000000 / Window.REFRESH_RATE;
@@ -61,14 +60,17 @@ public class Main {
 	
 	private void init() {
 		al = new ALManagement();
-		window = new Window("Gamer Time", true);
-		//window = new Window(768, 432, "Gamer Time", true, true, true);
+		//window = new Window("Gamer Time", true);
+		window = new Window(768, 432, "Gamer Time", true, true, true);
 		camera = new Camera(768, 432);
 		Shader.init();
 		
 		panels = new Panel[NUM_PANELS];
 		panels[GAME_PANEL] = new GamePanel(window, camera);
 		panel = GAME_PANEL;
+
+		sound = new Sound("res/audio/theme.wav");
+		sound.play(true);
 	}
 	
 	private void update() {

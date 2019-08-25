@@ -16,48 +16,78 @@ public class GamePanel extends Panel {
 	private Window window;
 	private Camera camera;
 
-	private BulletList bullets;
+	private BulletList playerBullets;
+	private BulletList enemyBullets;
 
 	private Background background;
 	private Player player;
 
-	private float rotation = 0;
-
 	private ArrayList<Enemy> enemies;
+
+	public static ColRect show;
 
 	public GamePanel(Window window, Camera camera) {
 		this.window = window;
 		this.camera = camera;
 
 		enemies = new ArrayList<Enemy>();
-		enemies.add(new BasicEnemy(camera, 200, 200));
+		enemies.add(new BasicEnemy(camera, 200, 200, 4,
+			new float[] {
+				3, 1, 3, 1
+			},
+			new Vector2f[] {
+				new Vector2f( 300,  0),
+				new Vector2f( 0,  100),
+				new Vector2f(-300,  0),
+				new Vector2f( 0, -100),
+			}
+		));
+		enemies.add(new BasicEnemy(camera, 200, 200, 0,
+				new float[] {
+					3, 1, 3, 1
+				},
+				new Vector2f[] {
+					new Vector2f( 300,  0),
+					new Vector2f( 0,  100),
+					new Vector2f(-300,  0),
+					new Vector2f( 0, -100),
+				}
+		));
 
-		bullets = new BulletList(camera);
+		playerBullets = new BulletList(camera);
+		enemyBullets = new BulletList(camera);
+		enemyBullets.spawnBullet(new Vector2f(camera.getWidth() / 2, 25), (float) Math.PI, BulletList.TYPE_SMOL, 400, 1);
 
 		background = new Background(camera);
-		player = new Player(window, camera);
+		player = new Player(window, camera, playerBullets);
 
 		state = Main.GAME_PANEL;
+
+		show = new ColRect(camera, 0, 0, 0, 100, 100, 1, 0, 0, 0.5f, false);
 	}
 	
 	public void update() {
+		background.update();
+		player.update();
 		for (int i = 0; i < enemies.size(); ++i)
 			enemies.get(i).update();
 
-		bullets.update(enemies);
-		background.update();
-		player.update();
+		playerBullets.update(enemies);
+		enemyBullets.update(player);
 
-		if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED)
-			bullets.spawnBullet(new Vector2f(player.getX() + (player.getWidth()) / 2, player.getY() - bullets.getHeight(BulletList.TYPE_PLAYER)), 0, BulletList.TYPE_PLAYER);
+		player.applyMovement();
+		for (int i = 0; i < enemies.size(); ++i)
+			enemies.get(i).applyMovement();
 	}
 	
 	public void render() {
+		background.render();
+		enemyBullets.render();
+		playerBullets.render();
 		for(int i = 0; i < enemies.size(); ++i)
 			enemies.get(i).render();
-		bullets.render();
-		background.render();
 		player.render();
+		show.render();
 	}
 	
 	public void reset() {

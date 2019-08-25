@@ -5,6 +5,7 @@ import com.gnarly.engine.shaders.Shader;
 import com.gnarly.engine.shaders.Shader2t;
 import com.gnarly.engine.texture.TextureSet;
 import com.gnarly.game.Main;
+import org.joml.Vector2f;
 
 public class BasicEnemy extends Enemy {
 
@@ -16,9 +17,19 @@ public class BasicEnemy extends Enemy {
 	private Shader2t shader = Shader.SHADER2T;
 
 	private float time = 0;
+	private float passedTime = 0;
+	private int timeIndex = 0;
 
-	public BasicEnemy(Camera camera, float x, float y) {
-		super(camera, x, y, DIMS, DIMS, 1);
+	private float[] timing;
+	private Vector2f[] path;
+	private Vector2f start;
+	private Vector2f origin;
+
+	public BasicEnemy(Camera camera, float x, float y, float timeOffset, float[] times, Vector2f[] path) {
+		super(camera, 0, 0, DIMS, DIMS, 1);
+		this.timing = times;
+		this.path = path;
+		velocity = new Vector2f();
 		if (textures == null) {
 			textures = new TextureSet(new String[] {
 				"res/img/enemies/basic/basic-0.png",
@@ -27,16 +38,33 @@ public class BasicEnemy extends Enemy {
 				"res/img/enemies/basic/basic-3.png"
 			});
 		}
+		time = timeOffset;
+		start = new Vector2f();
+		for (; (timeOffset -= times[timeIndex]) >= 0; timeIndex = (timeIndex + 1) % path.length) {
+			passedTime += times[timeIndex];
+			start.add(path[timeIndex]);
+		}
+		origin = new Vector2f(x, y);
 	}
 
 	@Override
 	public void update() {
-		time = (float) (time + Main.dtime) % (spf * textures.length());
+		position.sub(origin.x, origin.y, 0);
+		time += Main.dtime;
+		float interp;
+		while ((interp = (time - passedTime) / timing[timeIndex]) > 1) {
+			passedTime += timing[timeIndex];
+			start.add(path[timeIndex]);
+			timeIndex = (timeIndex + 1) % timing.length;
+		}
+		velocity = path[timeIndex].mul(interp, new Vector2f()).add(start).sub(position.x, position.y);
+		position.add(origin.x, origin.y, 0);
+		System.out.println(position);
 	}
 
 	@Override
 	public void render() {
-		textures.get((int) (time / spf)).bind();
+		textures.get((int) (time / spf) % textures.length()).bind();
 		shader.enable();
 		shader.setMVP(camera.getMatrix().translate(position).scale(width * scale, height * scale, 1));
 		vao.render();
