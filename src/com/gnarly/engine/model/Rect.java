@@ -53,13 +53,21 @@ public class Rect {
 	public float getY() {
 		return position.y;
 	}
-	
+
+	public Vector2f getPosition() {
+		return new Vector2f(position.x, position.y);
+	}
+
 	public float getWidth() {
 		return width;
 	}
 	
 	public float getHeight() {
 		return height;
+	}
+
+	public Vector2f getDimensions() {
+		return new Vector2f(width, height);
 	}
 	
 	public void setX(float x) { 

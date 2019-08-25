@@ -27,8 +27,9 @@ import org.joml.Matrix4f;
 
 public abstract class Shader {
 
-	public static Shader2c  SHADER2C;
-	public static Shader2t  SHADER2T;
+	public static Shader2c SHADER2C;
+	public static Shader2t SHADER2T;
+	public static Shader2b SHADER2B;
 	
 	protected int program;
 	
@@ -93,7 +94,8 @@ public abstract class Shader {
 	}
 	
 	public static void init() {
-		SHADER2C  = new Shader2c();
-		SHADER2T  = new Shader2t();
+		SHADER2C = new Shader2c();
+		SHADER2T = new Shader2t();
+		SHADER2B = new Shader2b();
 	}
 }

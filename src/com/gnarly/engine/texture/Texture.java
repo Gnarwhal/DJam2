@@ -1,20 +1,5 @@
 package com.gnarly.engine.texture;
 
-import static org.lwjgl.opengl.GL11.GL_CLAMP;
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameterf;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -26,20 +11,24 @@ import org.lwjgl.BufferUtils;
 
 import com.gnarly.engine.display.Window;
 
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+
 public class Texture {
 
 	protected int id, width, height;
-	
+
 	public Texture(String name) {
+		this(name, GL_CLAMP);
+	}
+
+	public Texture(String name, int wrap) {
 		BufferedImage bi = null;
 		try {
-			bi = ImageIO.read(new File("res/img/" + Window.resolution + "/" + name));
+			bi = ImageIO.read(new File(name));
 		} catch (IOException e) {
-			try {
-				bi = ImageIO.read(new File("res/img/const/" + name));
-			} catch (IOException ex) {
-				e.printStackTrace();
-			}
+			e.printStackTrace();
 		}
 		if (bi != null) {
 			width = bi.getWidth();
@@ -57,13 +46,13 @@ public class Texture {
 				}
 			}
 			buffer.flip();
-			
+
 			id = glGenTextures();
 			bind();
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 			unbind();
 		}
@@ -82,8 +71,13 @@ public class Texture {
 	public int getHeight() {
 		return height;
 	}
-	
+
 	public void bind() {
+		bind(0);
+	}
+
+	public void bind(int activeTexture) {
+		glActiveTexture(GL_TEXTURE0 + activeTexture);
 		glBindTexture(GL_TEXTURE_2D, id);
 	}
 	

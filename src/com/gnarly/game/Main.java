@@ -4,10 +4,13 @@ import com.gnarly.engine.audio.ALManagement;
 import com.gnarly.engine.display.Camera;
 import com.gnarly.engine.display.Window;
 import com.gnarly.engine.shaders.Shader;
+import org.joml.Vector2f;
+
+import java.io.IOException;
 
 public class Main {
-	
-	public static long FPS = 999;
+
+	public static int fps;
 	public static double dtime;	
 	
 	public static final int
@@ -23,16 +26,29 @@ public class Main {
 	private int panel;
 	
 	public void start() {
-		long curTime, pastTime, nspf = 1000000000 / FPS;
 		init();
+		int frames = 0;
+		long curTime, pastTime, pastSec, nspf = 1000000000 / Window.REFRESH_RATE;
 		pastTime = System.nanoTime();
+		pastSec = pastTime;
 		while(!window.shouldClose()) {
 			curTime = System.nanoTime();
 			if (curTime - pastTime > nspf) {
-				dtime = (curTime - pastTime) / 1000000000d;
+				dtime = nspf / 1000000000d;
 				update();
 				render();
-				pastTime = curTime;
+				pastTime += nspf;
+				++frames;
+				if (curTime - pastSec > 1000000000) {
+					fps = frames;
+					frames = 0;
+					pastSec += 1000000000;
+				}
+				try {
+					Thread.sleep(nspf / 1000000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		al.destroy();
@@ -41,9 +57,9 @@ public class Main {
 	
 	private void init() {
 		al = new ALManagement();
-		window = new Window("Gamer Time", true);
-		//window = new Window(100, 100, "Gamer Time", true, true, true);
-		camera = new Camera(1920, 1080);
+		//window = new Window("Gamer Time", true);
+		window = new Window(768, 432, "Gamer Time", true, true, true);
+		camera = new Camera(768, 432);
 		Shader.init();
 		
 		panels = new Panel[NUM_PANELS];
