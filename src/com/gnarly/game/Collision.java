@@ -64,30 +64,30 @@ public class Collision {
 	}
 
 	public static boolean segmentCollision(Vector2f P1, Vector2f D1, Vector2f V1, Vector2f P2, Vector2f D2, Vector2f V2) {
-		final float DELTA = 0.00001f;
+		final float DELTA = 0.000001f;
 
 		if ((V1.length() == 0 && V2.length() > 0)
 		 || (V2.length() == 0 && V1.length() > 0)
 		 ||  V1.angle(V2) > DELTA) {
-			float b = (P1.y - P2.y - (V2.y - V1.y) * (P1.x + D1.x - P2.x) / (V2.x - V1.x)) / (D2.y + (V2.y - V1.y) / (V2.x - V1.x));
+			float b = (P1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
 			if (rangeCheck(b)) {
 				float t = (P1.x - P2.x - D2.x * b) / (V2.x - V1.x);
 				if (rangeCheck(t))
 					return true;
 			}
-			float a = (P2.y - P1.y - (V1.y - V2.y) * (P2.x + D2.x - P1.x) / (V1.x - V2.x)) / (D1.y + (V1.y - V2.y) / (V1.x - V2.x));
+			float a = (P2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
 			if (rangeCheck(a)) {
 				float t = (P1.x + D1.x * a - P2.x) / (V2.x - V1.x);
 				if (rangeCheck(t))
 					return true;
 			}
-			b = (P1.y + D1.y - P2.y - (V2.y - V1.y) * (P1.x + D1.x - P2.x) / (V2.x - V1.x)) / (D2.y + (V2.y - V1.y) / (V2.x - V1.x));
+			b = (P1.x + D1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y - D1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
 			if (rangeCheck(b)) {
 				float t = (P1.x + D1.x - P2.x - D2.x * b) / (V2.x - V1.x);
 				if (rangeCheck(t))
 					return true;
 			}
-			a = (P2.y + D2.y - P1.y - (V1.y - V2.y) * (P2.x + D2.x - P1.x) / (V1.x - V2.x)) / (D1.y + (V1.y - V2.y) / (V1.x - V2.x));
+			a = (P2.x + D2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y - D2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
 			if (rangeCheck(a)) {
 				float t = (P1.x + D1.x * a - P2.x - D2.x) / (V2.x - V1.x);
 				if (rangeCheck(t))

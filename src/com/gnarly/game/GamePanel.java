@@ -3,7 +3,11 @@ package com.gnarly.game;
 import com.gnarly.engine.display.Camera;
 import com.gnarly.engine.display.Window;
 import com.gnarly.engine.model.ColRect;
+import com.gnarly.game.enemies.BasicEnemy;
+import com.gnarly.game.enemies.Enemy;
 import org.joml.Vector2f;
+
+import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 
@@ -19,33 +23,38 @@ public class GamePanel extends Panel {
 
 	private float rotation = 0;
 
-	private ColRect testRect;
+	private ArrayList<Enemy> enemies;
 
 	public GamePanel(Window window, Camera camera) {
 		this.window = window;
 		this.camera = camera;
+
+		enemies = new ArrayList<Enemy>();
+		enemies.add(new BasicEnemy(camera, 200, 200));
 
 		bullets = new BulletList(camera);
 
 		background = new Background(camera);
 		player = new Player(window, camera);
 
-		testRect = new ColRect(camera, 100, 100, 0, 25, 25, 1, 0, 0, 1, false);
-
 		state = Main.GAME_PANEL;
 	}
 	
 	public void update() {
-		bullets.update(testRect, new Vector2f(0, 100));
+		for (int i = 0; i < enemies.size(); ++i)
+			enemies.get(i).update();
+
+		bullets.update(enemies);
 		background.update();
 		player.update();
 
 		if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED)
-			bullets.spawnBullet(new Vector2f(player.getX() + (player.getWidth()) / 2, player.getY() + bullets.getHeight(BulletList.TYPE_PLAYER)), rotation += Math.PI / 16, BulletList.TYPE_PLAYER);
+			bullets.spawnBullet(new Vector2f(player.getX() + (player.getWidth()) / 2, player.getY() - bullets.getHeight(BulletList.TYPE_PLAYER)), 0, BulletList.TYPE_PLAYER);
 	}
 	
 	public void render() {
-		testRect.render();
+		for(int i = 0; i < enemies.size(); ++i)
+			enemies.get(i).render();
 		bullets.render();
 		background.render();
 		player.render();

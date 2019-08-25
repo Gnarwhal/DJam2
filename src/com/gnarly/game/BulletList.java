@@ -7,6 +7,7 @@ import com.gnarly.engine.model.Vao;
 import com.gnarly.engine.shaders.Shader;
 import com.gnarly.engine.shaders.Shader2t;
 import com.gnarly.engine.texture.TextureSet;
+import com.gnarly.game.enemies.Enemy;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class BulletList {
 	};
 
 	public static final float[] SPEEDS = new float[] {
-		20
+		200
 	};
 
 	public static final int
@@ -83,12 +84,17 @@ public class BulletList {
 		}
 	}
 
-	public void update(Rect rect, Vector2f velocity) {
+	public void update(ArrayList<Enemy> enemies) {
 		for (int i = 0; i < bullets.size(); ++i) {
 			Bullet bullet = bullets.get(i);
 			Vector2f deltaV = bullet.velocity.mul((float) Main.dtime, new Vector2f());
-			if (Collision.collide(rect.getPosition(), rect.getDimensions(), velocity, bullet))
-				System.out.println("collision");
+			for (int j = 0; j < enemies.size(); ++j) {
+				if (Collision.collide(enemies.get(j).getPosition(), enemies.get(j).getDimensions(), new Vector2f(), bullet)) {
+					enemies.remove(j);
+					--j;
+				}
+				System.out.println("Wat");
+			}
 			bullet.position.add(deltaV);
 			bullet.boundingPosition.add(deltaV);
 			bullet.lifetime += Main.dtime;

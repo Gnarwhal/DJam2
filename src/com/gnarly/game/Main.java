@@ -26,6 +26,10 @@ public class Main {
 	private int panel;
 	
 	public void start() {
+		System.out.println(Collision.segmentCollision(
+			new Vector2f(100, 100), new Vector2f(25, 0), new Vector2f(0, 100),
+			new Vector2f(110.9f, 165.3f), new Vector2f(3.923f, -0.7804f), new Vector2f(-3.902f, -19.62f)
+		));
 		init();
 		int frames = 0;
 		long curTime, pastTime, pastSec, nspf = 1000000000 / Window.REFRESH_RATE;
@@ -39,16 +43,16 @@ public class Main {
 				render();
 				pastTime += nspf;
 				++frames;
-				if (curTime - pastSec > 1000000000) {
-					fps = frames;
-					frames = 0;
-					pastSec += 1000000000;
-				}
-				try {
-					Thread.sleep(nspf / 1000000);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			}
+			if (curTime - pastSec > 1000000000) {
+				fps = frames;
+				frames = 0;
+				pastSec += 1000000000;
+			}
+			if (nspf - curTime + pastTime > 10000000) try {
+				Thread.sleep(1);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		al.destroy();
@@ -57,8 +61,8 @@ public class Main {
 	
 	private void init() {
 		al = new ALManagement();
-		//window = new Window("Gamer Time", true);
-		window = new Window(768, 432, "Gamer Time", true, true, true);
+		window = new Window("Gamer Time", true);
+		//window = new Window(768, 432, "Gamer Time", true, true, true);
 		camera = new Camera(768, 432);
 		Shader.init();
 		
