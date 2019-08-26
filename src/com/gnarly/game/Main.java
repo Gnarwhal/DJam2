@@ -70,8 +70,8 @@ public class Main {
 		}
 
 		al = new ALManagement();
-		window = new Window("Gamer Time", true);
-		//window = new Window(768, 432, "Gamer Time", true, true, true);
+		window = new Window("Space Mash", true);
+		//window = new Window(768, 432, "Space Mash", true, true, true);
 		camera = new Camera(768, 432);
 		Shader.init();
 
