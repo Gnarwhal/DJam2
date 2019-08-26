@@ -12,19 +12,14 @@ import java.io.IOException;
 public class Main {
 
 	public static int fps;
-	public static double dtime;	
-	
-	public static final int
-		NUM_PANELS = 1,
-		GAME_PANEL = 0;
+	public static double dtime;
 	
 	private ALManagement al;
 	
 	private Window window;
 	private Camera camera;
 	
-	private Panel[] panels;
-	private int panel;
+	private GamePanel panel;
 
 	private Sound sound;
 
@@ -59,15 +54,28 @@ public class Main {
 	}
 	
 	private void init() {
+		int position = 15;
+		for (int i = 0; i < 16; ++i) {
+			int movement = (int) (Math.random() * 11) - 5;
+			if (position + movement < 5 || position + movement > 27)
+				position -= movement;
+			else
+				position += movement;
+			/*System.out.println(" --- ");
+			System.out.println("30 1");
+			System.out.println("1 5");
+			System.out.println(position + " 0.12903225806");
+			System.out.println("1 0.38709677418 ");
+			System.out.println((28 - position) + " 0.12903225806");*/
+		}
+
 		al = new ALManagement();
-		//window = new Window("Gamer Time", true);
-		window = new Window(768, 432, "Gamer Time", true, true, true);
+		window = new Window("Gamer Time", true);
+		//window = new Window(768, 432, "Gamer Time", true, true, true);
 		camera = new Camera(768, 432);
 		Shader.init();
-		
-		panels = new Panel[NUM_PANELS];
-		panels[GAME_PANEL] = new GamePanel(window, camera);
-		panel = GAME_PANEL;
+
+		panel = new GamePanel(window, camera);
 
 		sound = new Sound("res/audio/theme.wav");
 		sound.play(true);
@@ -75,22 +83,15 @@ public class Main {
 	
 	private void update() {
 		window.update();
-		int state = panels[panel].checkState();
-		if (state != panel) {
-			switch (state) {
-				case GAME_PANEL:
-					GamePanel game = (GamePanel) panels[GAME_PANEL];
-					game.reset();
-			}
-			panel = state;
-		}
-		panels[panel].update();
+		panel.update();
+		if (panel.restart())
+			panel = new GamePanel(window, camera);
 		camera.update();
 	}
 	
 	private void render() {
 		window.clear();
-		panels[panel].render();
+		panel.render();
 		window.swap();
 	}
 	

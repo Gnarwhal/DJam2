@@ -100,6 +100,8 @@ public class BulletList {
 						enemies.remove(j);
 						--j;
 					}
+					bullets.remove(i);
+					--i;
 				}
 			}
 			bullet.position.add(deltaV);
@@ -120,8 +122,11 @@ public class BulletList {
 			Vector2f deltaV = bullet.velocity.mul((float) Main.dtime, new Vector2f());
 			Collision.Bounds bounds = player.getBounds();
 			Vector2f[] segments = player.getSegments();
-			if (Collision.collide(bounds, segments, player.getVelocity(), bullet))
+			if (Collision.collide(bounds, segments, player.getVelocity(), bullet)) {
 				player.damage(bullet.damage);
+				bullets.remove(i);
+				--i;
+			}
 
 			bullet.position.add(deltaV);
 			bullet.boundingPosition.add(deltaV);

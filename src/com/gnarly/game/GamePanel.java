@@ -2,16 +2,23 @@ package com.gnarly.game;
 
 import com.gnarly.engine.display.Camera;
 import com.gnarly.engine.display.Window;
-import com.gnarly.engine.model.ColRect;
-import com.gnarly.game.enemies.BasicEnemy;
+import com.gnarly.engine.model.TexRect;
 import com.gnarly.game.enemies.Enemy;
-import org.joml.Vector2f;
 
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 
-public class GamePanel extends Panel {
+public class GamePanel {
+
+	private static final int
+		STATE_PRE     = 0x00,
+		STATE_PLAYING = 0x01,
+		STATE_DEAD    = 0x02,
+		STATE_WIN     = 0x03;
+
+	private static final float
+		DELAY = 0.75f;
 
 	private Window window;
 	private Camera camera;
@@ -24,79 +31,99 @@ public class GamePanel extends Panel {
 
 	private ArrayList<Enemy> enemies;
 
-	public static ColRect show;
+	private Level level;
+
+	private int state = STATE_PRE;
+	private TexRect begin;
+	private TexRect dead;
+	private TexRect win;
+
+	private boolean restart = false;
+
+	private float time;
 
 	public GamePanel(Window window, Camera camera) {
 		this.window = window;
 		this.camera = camera;
 
 		enemies = new ArrayList<Enemy>();
-		enemies.add(new BasicEnemy(camera, 200, 200, 4,
-			new float[] {
-				3, 1, 3, 1
-			},
-			new Vector2f[] {
-				new Vector2f( 300,  0),
-				new Vector2f( 0,  100),
-				new Vector2f(-300,  0),
-				new Vector2f( 0, -100),
-			}
-		));
-		enemies.add(new BasicEnemy(camera, 200, 200, 0,
-				new float[] {
-					3, 1, 3, 1
-				},
-				new Vector2f[] {
-					new Vector2f( 300,  0),
-					new Vector2f( 0,  100),
-					new Vector2f(-300,  0),
-					new Vector2f( 0, -100),
-				}
-		));
 
 		playerBullets = new BulletList(camera);
 		enemyBullets = new BulletList(camera);
-		enemyBullets.spawnBullet(new Vector2f(camera.getWidth() / 2, 25), (float) Math.PI, BulletList.TYPE_SMOL, 400, 1);
+
+		level = new Level(camera, "res/levels/level1.txt", enemies, enemyBullets);
 
 		background = new Background(camera);
 		player = new Player(window, camera, playerBullets);
 
-		state = Main.GAME_PANEL;
-
-		show = new ColRect(camera, 0, 0, 0, 100, 100, 1, 0, 0, 0.5f, false);
+		begin = new TexRect(camera, "res/img/ui/begin.png", 0, 0, 0, camera.getWidth(), camera.getHeight(), 0, false);
+		dead  = new TexRect(camera, "res/img/ui/dead.png",  0, 0, 0, camera.getWidth(), camera.getHeight(), 0, false);
+		win   = new TexRect(camera, "res/img/ui/win.png",   0, 0, 0, camera.getWidth(), camera.getHeight(), 0, false);
 	}
 	
 	public void update() {
 		background.update();
-		player.update();
-		for (int i = 0; i < enemies.size(); ++i)
-			enemies.get(i).update();
+		if (state == STATE_PRE) {
+			player.updateAnim();
 
-		playerBullets.update(enemies);
-		enemyBullets.update(player);
+			if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED)
+				state = STATE_PLAYING;
+		}
+		else if (state == STATE_PLAYING) {
+			player.update();
+			for (int i = 0; i < enemies.size(); ++i)
+				enemies.get(i).update();
 
-		player.applyMovement();
-		for (int i = 0; i < enemies.size(); ++i)
-			enemies.get(i).applyMovement();
+			playerBullets.update(enemies);
+			enemyBullets.update(player);
+
+			if (player.getHealth() <= 0) {
+				state = STATE_DEAD;
+			}
+			else if (enemies.size() == 0) {
+				state = STATE_WIN;
+			}
+
+			player.applyMovement();
+			for (int i = 0; i < enemies.size(); ++i)
+				enemies.get(i).applyMovement();
+		}
+		else if (state == STATE_DEAD) {
+			time += Main.dtime;
+			if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED && time > DELAY)
+				restart = true;
+		}
+		else if (state == STATE_WIN) {
+			player.updateAnim();
+			time += Main.dtime;
+			if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED && time > DELAY)
+				restart = true;
+		}
 	}
 	
 	public void render() {
 		background.render();
-		enemyBullets.render();
-		playerBullets.render();
-		for(int i = 0; i < enemies.size(); ++i)
-			enemies.get(i).render();
-		player.render();
-		show.render();
+		if (state == STATE_PRE) {
+			player.render();
+			begin.render();
+		}
+		else if (state == STATE_PLAYING) {
+			enemyBullets.render();
+			playerBullets.render();
+			for (int i = 0; i < enemies.size(); ++i)
+				enemies.get(i).render();
+			player.render();
+		}
+		else if (state == STATE_DEAD) {
+			dead.render();
+		}
+		else if (state == STATE_WIN) {
+			player.render();
+			win.render();
+		}
 	}
-	
-	public void reset() {
 
-	}
-	
-	public int checkState() {
-		int state = this.state;
-		this.state = Main.GAME_PANEL;
-		return state;
+	public boolean restart() {
+		return restart;
 	}
 }

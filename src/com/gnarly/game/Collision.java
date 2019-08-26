@@ -42,7 +42,6 @@ public class Collision {
 		Vector2f scaledBV = bullet.velocity.mul((float) Main.dtime, new Vector2f());
 		Bounds bounds = getBounds(position, dimensions, boundVelocity);
 		Bounds bulletBounds = getBounds(bullet.boundingPosition, bullet.bounds, scaledBV);
-		GamePanel.show.set(position.x, position.y, bounds.dimensions.x, bounds.dimensions.y);
 		if (overlap(bounds, bulletBounds)) {
 			Vector2f[] boundsSegments = new Vector2f[] {
 				position,
@@ -97,52 +96,48 @@ public class Collision {
 	public static boolean segmentCollision(Vector2f P1, Vector2f D1, Vector2f V1, Vector2f P2, Vector2f D2, Vector2f V2) {
 		final float EPSILON = 0.000001f;
 
-		if ((V1.length() == 0 && V2.length() > 0)
-		 || (V2.length() == 0 && V1.length() > 0)
-		 ||  Math.abs(V1.angle(V2)) > EPSILON) {
-			if (V1.length() > 0) {
-				float b = (P1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
-				if (rangeCheck(b)) {
-					float t;
-					if (V1.y == 0)
-						t = (P1.x + D1.x - P2.x - D2.x * b) / (V2.x - V1.x);
-					else
-						t = (P1.y + D1.y - P2.y - D2.y * b) / (V2.y - V1.y);
-					if (rangeCheck(t))
-						return true;
-				}
-				b = (P1.x + D1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y - D1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
-				if (rangeCheck(b)) {
-					float t;
-					if (V1.y == 0)
-						t = (P1.x + D1.x - P2.x - D2.x * b) / (V2.x - V1.x);
-					else
-						t = (P1.y + D1.y - P2.y - D2.y * b) / (V2.y - V1.y);
-					if (rangeCheck(t))
-						return true;
-				}
+		if (V1.length() > 0) {
+			float b = (P1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
+			if (rangeCheck(b)) {
+				float t;
+				if (V1.y == 0)
+					t = (P1.x + D1.x - P2.x - D2.x * b) / (V2.x - V1.x);
+				else
+					t = (P1.y + D1.y - P2.y - D2.y * b) / (V2.y - V1.y);
+				if (rangeCheck(t))
+					return true;
 			}
-			if (V2.length() > 0) {
-				float a = (P2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
-				if (rangeCheck(a)) {
-					float t;
-					if (V2.y == 0)
-						t = (P1.x + D1.x * a - P2.x - D2.x) / (V2.x - V1.x);
-					else
-						t = (P1.y + D1.y * a - P2.y - D2.y) / (V2.y - V1.y);
-					if (rangeCheck(t))
-						return true;
-				}
-				a = (P2.x + D2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y - D2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
-				if (rangeCheck(a)) {
-					float t;
-					if (V2.y == 0)
-						t = (P1.x + D1.x * a - P2.x - D2.x) / (V2.x - V1.x);
-					else
-						t = (P1.y + D1.y * a - P2.y - D2.y) / (V2.y - V1.y);
-					if (rangeCheck(t))
-						return true;
-				}
+			b = (P1.x + D1.x - P2.x + (V1.x - V2.x) * (P2.y - P1.y - D1.y) / (V1.y - V2.y)) / (D2.x - D2.y * (V1.x - V2.x) / (V1.y - V2.y));
+			if (rangeCheck(b)) {
+				float t;
+				if (V1.y == 0)
+					t = (P1.x + D1.x - P2.x - D2.x * b) / (V2.x - V1.x);
+				else
+					t = (P1.y + D1.y - P2.y - D2.y * b) / (V2.y - V1.y);
+				if (rangeCheck(t))
+					return true;
+			}
+		}
+		if (V2.length() > 0) {
+			float a = (P2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
+			if (rangeCheck(a)) {
+				float t;
+				if (V2.y == 0)
+					t = (P1.x + D1.x * a - P2.x - D2.x) / (V2.x - V1.x);
+				else
+					t = (P1.y + D1.y * a - P2.y - D2.y) / (V2.y - V1.y);
+				if (rangeCheck(t))
+					return true;
+			}
+			a = (P2.x + D2.x - P1.x - (V1.x - V2.x) * (P1.y - P2.y - D2.y) / (V2.y - V1.y)) / (D1.x + D1.y * (V1.x - V2.x) / (V2.y - V1.y));
+			if (rangeCheck(a)) {
+				float t;
+				if (V2.y == 0)
+					t = (P1.x + D1.x * a - P2.x - D2.x) / (V2.x - V1.x);
+				else
+					t = (P1.y + D1.y * a - P2.y - D2.y) / (V2.y - V1.y);
+				if (rangeCheck(t))
+					return true;
 			}
 		}
 		return false;

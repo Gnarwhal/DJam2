@@ -15,7 +15,7 @@ public class Player extends TexRect {
 	private double spf   = 1.0 / 14.0;
 	private double time  = 0;
 	private int    frame = 0;
-	private float  speed = 150;
+	private float  speed = 250;
 	private int    health = 5;
 
 	private Vector2f velocity = new Vector2f();
@@ -24,7 +24,7 @@ public class Player extends TexRect {
 	private BulletList bullets;
 
 	public Player(Window window, Camera camera, BulletList bullets) {
-		super(camera, (Texture) null, camera.getWidth() / 2 - 16, camera.getHeight() / 2 - 16, -0.1f, 32, 32, 0, false);
+		super(camera, (Texture) null, camera.getWidth() / 2 - 16, camera.getHeight() * 3 / 4 - 16, -0.1f, 32, 32, 0, false);
 		this.window = window;
 		this.bullets = bullets;
 
@@ -42,7 +42,7 @@ public class Player extends TexRect {
 	public void update() {
 		float speedMultiplier = 1;
 		if (window.keyPressed(GLFW_KEY_LEFT_SHIFT) >= Window.BUTTON_PRESSED)
-			speedMultiplier *= 1.5;
+			speedMultiplier *= 2;
 		else if (window.keyPressed(GLFW_KEY_LEFT_CONTROL) >= Window.BUTTON_PRESSED)
 			speedMultiplier *= 0.5;
 
@@ -67,15 +67,19 @@ public class Player extends TexRect {
 		else if (position.y + height + velocity.y >= camera.getHeight())
 			velocity.y = camera.getHeight() - height - position.y;
 
+		updateAnim();
+
+		if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED)
+			bullets.spawnBullet(new Vector2f(position.x + width / 2, position.y - BulletList.getHeight(BulletList.TYPE_PLAYER)), 0, BulletList.TYPE_PLAYER, 400, 1);
+	}
+
+	public void updateAnim() {
 		time += Main.dtime;
 		while (time >= spf) {
 			time -= spf;
 			frame = (frame + 1) % frames.length;
 			setTexture(frames[frame]);
 		}
-
-		if (window.keyPressed(GLFW_KEY_SPACE) == Window.BUTTON_PRESSED)
-			bullets.spawnBullet(new Vector2f(position.x + width / 2, position.y - BulletList.getHeight(BulletList.TYPE_PLAYER)), 0, BulletList.TYPE_PLAYER, 400, 1);
 	}
 
 	public Collision.Bounds getBounds() {
